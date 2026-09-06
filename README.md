@@ -10,7 +10,7 @@ Hugging Face Repository: Harish39/plant_disease_classifier
 
 Required File:
 
-**plant_pre_trained_model.pth** - https://huggingface.co/Harish39/plant_disease_classifier/resolve/main/plant_pre_trained_model.pth
+  **plant_pre_trained_model.pth** - https://huggingface.co/Harish39/plant_disease_classifier/resolve/main/plant_pre_trained_model.pth
 
 To set up the models locally, download them from the Hugging Face repository and place them inside the backend/models/ directory before starting the application.
 
