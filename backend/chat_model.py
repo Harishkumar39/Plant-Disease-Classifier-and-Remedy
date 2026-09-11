@@ -1,10 +1,9 @@
-from transformers import pipeline, AutoTokenizer
-# from optimum.intel import OVModelForCausalLM
 from google import genai
 from dotenv import load_dotenv
 from google.genai import types
-import os
+
 load_dotenv()
+
 
 class ChatModel:
     def __init__(self):
@@ -32,10 +31,8 @@ class ChatModel:
             model="gemini-3.6-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
-                thinking_config=types.ThinkingConfig(
-                    thinking_level="minimal"
-                ),
-                max_output_tokens=200
-            )
+                thinking_config=types.ThinkingConfig(thinking_level="minimal"),
+                max_output_tokens=200,
+            ),
         )
-        return  response.text
+        return response.text

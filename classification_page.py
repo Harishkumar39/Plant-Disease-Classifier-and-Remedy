@@ -11,10 +11,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_URL = 'http://127.0.0.1:8000'
+API_URL = "http://127.0.0.1:8000"
+
 
 def get_suggestions(disease):
-
     api_key = os.getenv("GEMINI_API_KEY")
 
     if not api_key:
@@ -39,19 +39,14 @@ def get_suggestions(disease):
         model="gemini-3.6-flash",
         contents=prompt,
         config=types.GenerateContentConfig(
-            thinking_config=types.ThinkingConfig(
-                thinking_level="minimal"
-            ),
-            max_output_tokens=200
-        )
+            thinking_config=types.ThinkingConfig(thinking_level="minimal"),
+            max_output_tokens=200,
+        ),
     )
     return response.text
 
 
-st.set_page_config(
-    page_title="Classification Site",
-    layout="wide"
-)
+st.set_page_config(page_title="Classification Site", layout="wide")
 
 if "classifier" not in st.session_state:
     st.session_state.classifier = "Plant"
@@ -68,7 +63,7 @@ st.title("Plant Leaf Disease Classification Site")
 st.error("Select the options from the side-bar")
 
 
-st.sidebar.title('Settings')
+st.sidebar.title("Settings")
 
 if st.sidebar.button("Plant Classifier", width="stretch"):
     st.session_state.classifier = "Plant"
@@ -77,70 +72,74 @@ if st.sidebar.button("Plant Disease Remedy Chat", width="stretch"):
     st.session_state.classifier = "Chat"
 
 if st.session_state.classifier == "Plant":
-
-    df = pd.read_csv('./data/plant_disease_dataset.csv')
-    class_counts = (
-        df["class_name"]
-        .value_counts()
-        .reset_index()
-    )
+    df = pd.read_csv("./data/plant_disease_dataset.csv")
+    class_counts = df["class_name"].value_counts().reset_index()
 
     class_counts.columns = ["class_name", "count"]
 
-
     st.title("Plant Disease Classifier")
 
-    st.bar_chart(class_counts, x='class_name', y='count', x_label='Plant Diseases', y_label='Number of Samples')
+    st.bar_chart(
+        class_counts,
+        x="class_name",
+        y="count",
+        x_label="Plant Diseases",
+        y_label="Number of Samples",
+    )
 
     st.write("Upload a plant leaf image to classify.")
 
     input_method = st.segmented_control(
-        "Choose input method:",
-        ["Upload Image", "Take Picture"],
-        default="Upload Image"
+        "Choose input method:", ["Upload Image", "Take Picture"], default="Upload Image"
     )
 
     img = None
     if input_method == "Upload Image":
-        img = st.file_uploader("Upload a plant leaf image", type=['jpg', 'jpeg', 'png'])
+        img = st.file_uploader("Upload a plant leaf image", type=["jpg", "jpeg", "png"])
     elif input_method == "Take Picture":
         img = st.camera_input("Take a picture")
 
-    if st.button('Classify', key='classify_plant'):
+    if st.button("Classify", key="classify_plant"):
         time_stamp = time.ctime()
         if img is not None:
             image = Image.open(img).convert("RGB")
 
             if input_method == "Upload Image":
-                st.write('Image Preview')
+                st.write("Image Preview")
                 st.image(image, width=500)
 
             buf = io.BytesIO()
             image.save(buf, format="JPEG")
-            file_name = getattr(img, "name", "camera_capture.jpg") or "camera_capture.jpg"
+            file_name = (
+                getattr(img, "name", "camera_capture.jpg") or "camera_capture.jpg"
+            )
 
-            response = requests.post(f"{API_URL}/predict/plant", files={
-                "file": (
-                    file_name,
-                    buf.getvalue(),
-                    "image/jpeg"
-                )
-            })
+            response = requests.post(
+                f"{API_URL}/predict/plant",
+                files={"file": (file_name, buf.getvalue(), "image/jpeg")},
+            )
             result = response.json()
 
-            if result['status'] == 'Uncertain':
-                st.warning("High uncertainty detected. This image does not match known classes.")
+            if result["status"] == "Uncertain":
+                st.warning(
+                    "High uncertainty detected. This image does not match known classes."
+                )
             else:
                 st.success(f"Type: {result['prediction']}")
 
-            file_name = getattr(img, "name", "camera_capture.jpg") or "camera_capture.jpg"
+            file_name = (
+                getattr(img, "name", "camera_capture.jpg") or "camera_capture.jpg"
+            )
 
-            pred_logs = requests.post(f"{API_URL}/predict/logs", json={
-                'Time Stamp': time_stamp,
-                'Image Name': file_name,
-                'Status': result['status'],
-                'Result': result['prediction']
-            })
+            pred_logs = requests.post(
+                f"{API_URL}/predict/logs",
+                json={
+                    "Time Stamp": time_stamp,
+                    "Image Name": file_name,
+                    "Status": result["status"],
+                    "Result": result["prediction"],
+                },
+            )
 
             if pred_logs.ok:
                 st.session_state.prediction_logs.append(pred_logs.json())
@@ -156,19 +155,16 @@ elif st.session_state.classifier == "Chat":
     st.info("Put in your Plant Disease Name and get some instant remedies.....")
 
     if "messages" not in st.session_state:
-        st.session_state.messages=[]
+        st.session_state.messages = []
 
     for message in st.session_state.messages:
-        with st.chat_message(message['role']):
-            st.write(message['content'])
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
 
     prompt = st.chat_input("Enter the disease name from the classifier...")
 
     if prompt:
-        st.session_state.messages.append({
-            "role": "user",
-            "content": prompt
-        })
+        st.session_state.messages.append({"role": "user", "content": prompt})
 
         with st.chat_message("user"):
             st.write(prompt)
@@ -176,10 +172,7 @@ elif st.session_state.classifier == "Chat":
         response = get_suggestions(prompt)
         if response:
             result = response
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": result
-            })
+            st.session_state.messages.append({"role": "assistant", "content": result})
 
             with st.chat_message("assistant"):
                 st.write(result)
