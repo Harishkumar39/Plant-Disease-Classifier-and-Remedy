@@ -26,8 +26,6 @@ plant_class_names = [
     re.sub(r"[^a-zA-Z]+", " ", plt).title() for plt in plant_class_names
 ]
 
-torch.serialization.add_safe_globals([torchvision.models.convnext.ConvNeXt])
-
 transform = transforms.Compose(
     [
         transforms.Resize((224, 224)),
@@ -36,12 +34,27 @@ transform = transforms.Compose(
     ]
 )
 
-plant_model = torch.load(
-    BASE_DIR / "backend" / "models" / "plant_pre_trained_model.pth",
-    map_location=device,
-    weights_only=False,
-)
-plant_model.eval()
+plant_model = None
+
+
+def get_plant_model():
+    global plant_model
+    if plant_model is None:
+        model_path = BASE_DIR / "backend" / "models" / "plant_pre_trained_model.pth"
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model file not found at {model_path}")
+        try:
+            torch.serialization.add_safe_globals([torchvision.models.convnext.ConvNeXt])
+        except AttributeError:
+            pass
+
+        plant_model = torch.load(
+            BASE_DIR / "backend" / "models" / "plant_pre_trained_model.pth",
+            map_location=device,
+            weights_only=False,
+        )
+        plant_model.eval()
+    return plant_model
 
 
 def run_inference_mode(model, image_bytes, class_names):
@@ -75,7 +88,8 @@ def http_check():
 @app.post("/predict/plant")
 async def predict_plant(file: UploadFile = File(...)):
     image_bytes = await file.read()
-    return run_inference_mode(plant_model, image_bytes, plant_class_names)
+    model = get_plant_model()
+    return run_inference_mode(model, image_bytes, plant_class_names)
 
 
 @app.get("/predict/logs")
