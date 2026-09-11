@@ -17,6 +17,12 @@ To set up the models locally, download them from the Hugging Face repository and
 ---
 
 ## Getting Started
+
+### Option A: Run via Docker Container (Recommended)
+You can pull and run the containerized application directly from the GitHub Container Registry without installing Python dependencies manually:  
+```docker pull ghcr.io/harishkumar39/plant-disease-api:main```  
+```docker run -p 8000:8000 ghcr.io/harishkumar39/plant-disease-api:main```  
+
 ### 1. Clone the Repository
 ```git clone https://github.com/Harishkumar39/Plant-Disease-Classifier-and-Remedy.git```  
 ```cd Plant-Disease-Classifier-and-Remedy```  
