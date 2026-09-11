@@ -8,5 +8,5 @@ python-dotenv==1.0.1
 pydantic==2.6.4
 pytest==8.1.0
 ruff==0.2.2
-httpx
+httpx<0.28.0
 python-multipart
